@@ -22,7 +22,7 @@ from .constants import PROXIES, TOPIC_AUTHORIZATION_USED, TOPIC_BATCH_CLAIMED, U
 from .hour import block_at
 from .settlements import classify
 
-WORKERS = int(os.environ.get("GROUND_TRUTH_WORKERS", 2))  # publicnode rate-limited 8 and then 3 parallel batches (HTTP 429)
+WORKERS = int(os.environ.get("GROUND_TRUTH_WORKERS", 4))  # two per node in RPC_POOL; publicnode alone throttled 3
 KEEP = {USDC, *PROXIES.values()}
 
 SCHEMA = """

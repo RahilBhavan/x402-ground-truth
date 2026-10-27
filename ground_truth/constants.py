@@ -1,6 +1,9 @@
 """Pinned inputs. Changing any of these changes every published number."""
 
 RPC_URL = "https://base-rpc.publicnode.com"
+# Keyless nodes that take 50-call batches (checked 2026-10-27). They serve only lookups whose empty answer is an
+# error (by hash, block number or nonce); eth_getLogs, where a short answer would pass unnoticed, stays on RPC_URL.
+RPC_POOL = (RPC_URL, "https://base-mainnet.public.blastapi.io")  # 1rpc.io/base dropped: free usage cap hit mid-census
 USDC = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
 X402SCAN_COMMIT = "5732bb83c8c4290f413f24318a838e3fee4ed2bf"
 

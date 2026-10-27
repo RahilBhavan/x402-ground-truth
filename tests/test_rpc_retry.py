@@ -53,5 +53,19 @@ class RetryAndResume(unittest.TestCase):  # AC-14
             self.assertEqual(len(fake.requests), before + 1)
 
 
+class Pool(unittest.TestCase):
+    def test_lookups_rotate_through_the_pool_and_logs_stay_on_the_first_node(self):
+        first, second = FakeRpc(lambda m, p: [] if m == "eth_getLogs" else {"n": 1}), FakeRpc(lambda m, p: {"n": 2})
+        self.addCleanup(first.close)
+        self.addCleanup(second.close)
+        with tempfile.TemporaryDirectory() as tmp:
+            rpc = Rpc([first.url, second.url], Path(tmp), pause=0)
+            for i in range(4):
+                rpc.call("eth_getTransactionReceipt", [hex(i)])
+                rpc.call("eth_getLogs", [{"fromBlock": hex(i)}])
+        self.assertEqual((len(first.requests), len(second.requests)), (6, 2))
+        self.assertTrue(all(r[0]["method"] == "eth_getTransactionReceipt" for r in second.requests))
+
+
 if __name__ == "__main__":
     unittest.main()
