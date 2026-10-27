@@ -41,7 +41,7 @@ The analyst picks one of these figures and quotes it: x402scan's live total, the
 
 - `ASSUMED 2026-10-27` A new repo, not a module inside `x402-exception-desk`. Rules out one combined repo, because that repo is a finished v1.1 release that answers a different question with synthetic data.
 - `DECIDED 2026-10-27` (Rahil, 2026-10-27: "Why does this not use my design skills") The project site, diagrams and any X card use `rahil-design` (charcoal, white and yellow, Anton and IBM Plex Sans, figures on the light figure surface). Rules out reusing `x402-exception-desk`'s blue report look.
-- `ASSUMED 2026-10-27` The window is the 7 days ending at the moment x402scan's rolling 7-day Base figure is captured (first capture in slice 1), on Base only. Rules out a 30-day or all-time headline in v1, because x402scan offers no historical per-day figure to check against and 30 days does not fit the hours.
+- `ASSUMED 2026-10-27` The window is the 47 complete 3.5-hour buckets of x402scan's 7-day Base series captured on 2026-10-27, from 2026-10-20 18:00 to 2026-10-27 14:30 UTC (164.5 hours), on Base only. Rules out a 30-day or all-time headline in v1, and the rolling total's unknown start (see the change log).
 
 ## 6. Open questions
 

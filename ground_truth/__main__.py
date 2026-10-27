@@ -16,18 +16,19 @@ def main():
     h.add_argument("--start", default="2026-10-25T14:00:00Z")
     h.add_argument("--out", default="out/s1")
     h.add_argument("--cache", default="out/cache")
+    h.add_argument("--no-scan", action="store_true", help="skip the block-by-block coverage scan")
     a = ap.parse_args()
     if a.cmd == "capture":
         path, rec = capture.capture(a.days)
         print(f"{path}: {rec['stats']['total_transactions']:,} tx, ${rec['usdc']:,.2f} ({a.days}d, base)")
     else:
         try:
-            result, payments = hour.run(Rpc(cache_dir=Path(a.cache)), a.start)
+            result, rows = hour.run(Rpc(cache_dir=Path(a.cache)), a.start, scan=not a.no_scan)
         except RpcError as e:
             print(e, file=sys.stderr)
             sys.exit(3)
-        hour.write(result, payments, Path(a.out))
-        print(json.dumps({k: result[k] for k in ("first_block", "last_block", "w0_visible", "w1", "dust_under_1_cent")}, indent=1))
+        hour.write(result, rows, Path(a.out))
+        print(json.dumps({k: result.get(k) for k in ("first_block", "last_block", "w0", "w1_removed", "w1", "coverage")}, indent=1))
 
 
 if __name__ == "__main__":

@@ -87,10 +87,5 @@ Fetch caveat: WebFetch summaries are model-condensed; items marked (F) should be
 5. Decide whether the PRD says "Visa/Artemis $15M (Apr 21 data, report July)" rather than $19M.
 6. MPPscan source is not public; MPP side must be rebuilt from Tempo RPC (keyless, no log cap seen) and needs the TIP-20 event ABI (F7).
 
-## R. Observed by the red-team reviewer, 2026-10-27 (review/round-1.json)
-| # | Claim | Source | Publisher | Date | Type | Conf |
-|---|---|---|---|---|---|---|
-| R1 | Deployed `x402ExactPermit2Proxy.sol` emits `Settled()` / `SettledWithPermit()`; `x402PermitTransfer` exists only in the spec text. Base proxies: exact 0x402085c248EeA27D92E8b30b2C58ed07f9E20001, upto 0x4020A4f3b7b90ccA423B9fabCc0CE57C6C240002, batch 0x4020074e9dF2ce1deE5A9C1b5c3f541D02a10003. Logs over blocks 53124928-53164928: 5 / 4,495 / 617. | https://github.com/x402-foundation/x402/tree/main/contracts/evm ; eth_getLogs on base-rpc.publicnode.com | x402 Foundation / Obs | 2026-10-27 | Primary (Obs) | H |
-| R2 | x402scan API routes are paid (`.paid('0.01')`) and accept lookbacks of 1, 7, 14 or 30 days only; the network chart uses 48 buckets. | https://github.com/Merit-Systems/x402scan (apps/scan/src/app/api/x402/_lib/schemas.ts, types/timeframes.ts) | Merit Systems | 2026-10-27 | Primary | H |
-| R4 | x402scan's Base CDP syncer is `enabled: false`; Bitquery is enabled with cutover 2026-06-09T18:00Z. HEAD 5732bb83c8c4290f413f24318a838e3fee4ed2bf. | sync/transfers/trigger/chains/evm/base/{cdp,bitquery}/config.ts | Merit Systems | 2026-10-27 | Primary | H |
-| R8 | Sizing inference: G6's at most ~290k all-caller AuthorizationUsed per day bounds a 7-day pull at ~2M logs. | inference from G6, G2 | - | 2026-10-27 | Inference | M |
+
+Rows observed during review and the build continue in [sources-observed.md](sources-observed.md).
