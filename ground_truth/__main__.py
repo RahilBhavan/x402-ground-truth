@@ -1,0 +1,34 @@
+import argparse
+import json
+import sys
+from pathlib import Path
+
+from . import capture, hour
+from .rpc import Rpc, RpcError
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="python -m ground_truth")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    c = sub.add_parser("capture", help="save x402scan's rolling Base figure")
+    c.add_argument("--days", type=int, default=7)
+    h = sub.add_parser("hour", help="slice 1: one hour of Base blocks")
+    h.add_argument("--start", default="2026-10-25T14:00:00Z")
+    h.add_argument("--out", default="out/s1")
+    h.add_argument("--cache", default="out/cache")
+    a = ap.parse_args()
+    if a.cmd == "capture":
+        path, rec = capture.capture(a.days)
+        print(f"{path}: {rec['stats']['total_transactions']:,} tx, ${rec['usdc']:,.2f} ({a.days}d, base)")
+    else:
+        try:
+            result, payments = hour.run(Rpc(cache_dir=Path(a.cache)), a.start)
+        except RpcError as e:
+            print(e, file=sys.stderr)
+            sys.exit(3)
+        hour.write(result, payments, Path(a.out))
+        print(json.dumps({k: result[k] for k in ("first_block", "last_block", "w0_visible", "w1", "dust_under_1_cent")}, indent=1))
+
+
+if __name__ == "__main__":
+    main()

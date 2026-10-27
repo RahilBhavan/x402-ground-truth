@@ -1,0 +1,13 @@
+{"round": 1, "prd_sha256_after": "c28330fbc0bbde340e395d347b8ba0fb9088f25fb86041ae9a6003edeea15085",
+ "responses": [
+  {"id": "R1", "status": "fixed", "where": "8 Facts (proxy row); 9 Rule definitions W1; Diagram 2 Q1; 11 Design spec scheme table; AC-10"},
+  {"id": "R2", "status": "fixed", "where": "5 ASSUMED 3 (rolling 7-day window); 8 Facts (API row); 9 falsifier 2; AC-1; AC-4; S1 capture step"},
+  {"id": "R3", "status": "fixed", "where": "7 Constraints deadline and people; 15 Build plan in hours (26 h, S5-S6 after 2026-11-10); 16 Cut list; Diagram 3"},
+  {"id": "R4", "status": "fixed", "where": "8 Facts (x402scan row names Bitquery since 2026-06-09 and commit 5732bb83); source row R4"},
+  {"id": "R5", "status": "fixed", "where": "9 Rule definitions W3 (any tx sender, second log query); 14 Data and scale Source; Diagram 2 Q3; S4"},
+  {"id": "R6", "status": "fixed", "where": "9 Rule definitions W4 (surviving W1-W3, in window; lifetime row only after S6); Diagram 2 Q4"},
+  {"id": "R7", "status": "fixed", "where": "2 Today (different windows and chains); 9 falsifier 1 uses D3 share, D5 not a falsifier"},
+  {"id": "R8", "status": "fixed", "where": "6 Open question 2 (key is a speed-up); 8 Facts (sizing row); 14 Data and scale Day one; AC-5 nonce/full-block hour"},
+  {"id": "R9", "status": "fixed", "where": "2 Today (x402scan publishes a counting filter, no exclusion rules)"},
+  {"id": "R10", "status": "fixed", "where": "11 Design spec Copy: W2 note on the rules page"}
+ ]}
