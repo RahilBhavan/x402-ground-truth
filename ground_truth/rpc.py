@@ -1,6 +1,7 @@
 """Keyless JSON-RPC client: batched calls, retry with backoff, on-disk cache per request.
 
 GROUND_TRUTH_RPC overrides the endpoint and GROUND_TRUTH_RPC_PAUSE the first backoff (tests use a fake server).
+The default backoff (4, 8, 16, 32 s) rides out publicnode's HTTP 429 bursts during the 7-day census.
 """
 import hashlib
 import json
@@ -21,7 +22,7 @@ class Rpc:
     def __init__(self, url=None, cache_dir=Path("out/cache"), tries=5, pause=None):
         self.url = url or os.environ.get("GROUND_TRUTH_RPC", RPC_URL)
         self.tries = tries
-        self.pause = float(os.environ.get("GROUND_TRUTH_RPC_PAUSE", 1.0)) if pause is None else pause
+        self.pause = float(os.environ.get("GROUND_TRUTH_RPC_PAUSE", 4.0)) if pause is None else pause
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 

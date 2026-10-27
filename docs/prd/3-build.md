@@ -36,10 +36,10 @@ Part 3 of the PRD; part 1 is [1-product.md](1-product.md).
 
 | # | Criterion | Where to check | Pass |
 | --- | --- | --- | --- |
-| AC-1 | `python -m ground_truth run --capture out/reconcile/x402scan-capture.json` exits 0 and writes `out/settlements.sqlite` and `out/waterfall.json` for the 7 days ending at the capture's timestamp. | Terminal, `out/` | [ ] |
+| AC-1 | `python -m ground_truth run --buckets out/reconcile/x402scan-buckets-<capture time>.json` exits 0 and writes `out/settlements.sqlite` and `out/waterfall.json` for the 47 complete buckets of that capture. | Terminal, `out/` | [ ] |
 | AC-2 | Two runs from an empty `out/` produce `out/waterfall.json` files with equal SHA-256 hashes. | `sha256sum` | [ ] |
 | AC-3 | `out/waterfall.json` records the first and last block numbers, the x402scan commit SHA of the facilitator list and a version string per rule. | `out/waterfall.json` | [ ] |
-| AC-4 | `out/reconcile/x402scan.csv` records x402scan's rolling 7-day Base USDC figure, its capture time and the saved page path, this project's W0 for the same block range, the hour-coverage correction from AC-5 and the ratio of the two. | `out/reconcile/x402scan.csv` | [ ] |
+| AC-4 | `out/reconcile/x402scan.csv` gives, for each of the 47 buckets, x402scan's transfer count and USDC, this project's W0 count and USDC and their ratio; `out/waterfall.json` holds the summed ratio after the hour-coverage correction from AC-5. | `out/reconcile/x402scan.csv` | [ ] |
 | AC-5 | For the hour starting 2026-10-25 14:00 UTC, a full-block scan lists every transaction sent by a listed facilitator; `out/reconcile/hour-coverage.json` gives the count and USDC of those the log-based census missed, and the census rows for that hour equal the scan's rows that carry an x402 marker, with 0 differences. | `tests/test_crosscheck.py` | [ ] |
 | AC-6 | Each rule W1–W5 is a function in `ground_truth/rules.py` with a test fixture holding at least 1 transfer it removes and 1 it keeps. | `python -m unittest` | [ ] |
 | AC-7 | For each rule, `out/waterfall.json` lists payments removed, USDC removed in atomic units and the remainder, and each remainder equals the previous remainder minus the removed amount. | `tests/test_waterfall.py` | [ ] |
@@ -88,6 +88,9 @@ Part 3 of the PRD; part 1 is [1-product.md](1-product.md).
 | --- | --- | --- | --- |
 | 2026-10-27 | First draft from the Proof Desk idea #4 teardown | DRAFT | — |
 | 2026-10-27 | Slice 2 finding: x402scan's 7-day figure is a materialized view over `NOW() - 7 days` at an unpublished refresh time, but its bucketed series uses exact 3.5-hour buckets. The window becomes the 47 complete buckets 2026-10-20 18:00 to 2026-10-27 14:30 UTC, and AC-4 compares per bucket. | IN (method fix) | 0 criteria; no date moved |
+| 2026-10-27 | Slice 3 finding: x402scan merges pass-through chains into one row (O6) and counts facilitator-sent transactions with no x402 marker (O7). W0 applies the same collapse and finds unmarked transactions from each address's nonce; W1 removes them as `unmarked`, and the waterfall shows the merged legs as a step. First bucket: W0 is 100.04% of x402scan's dollars. | IN (method fix) | 0 criteria |
+| 2026-10-27 | Slice 3 finding: x402scan's syncer reads only non-deprecated addresses of non-deprecated facilitators (73 of 128 Base addresses). W0 is now exactly that; traffic through the other 55 listed addresses is an added step beside it. | IN (method fix) | 0 criteria |
+| 2026-10-27 | AC-1 and AC-4 reworded for the bucketed window (the command takes the bucket capture; the comparison is per bucket) | IN (defect against changed window) | 0 criteria |
 | 2026-10-27 | Slice 2 finding: batch settlement is a payment channel. Claims are the payments; deposits and payouts are channel movements x402scan counts. W1 removes movements and adds claims sent by listed facilitators; claims from other senders are outside W0 and are reported beside the waterfall. | IN (method fix) | 0 criteria |
 | 2026-10-27 | Slice 2 finding: the keyless node refuses old state and `eth_getLogs` spans over 50,000 blocks. Channels older than 2M blocks stay unknown and are reported. | IN (limit) | 0 criteria |
 | 2026-10-27 | Rahil: use rahil-design instead of the exception-desk look | IN | 0 criteria; plan page rebuilt the same day, no slice moved |

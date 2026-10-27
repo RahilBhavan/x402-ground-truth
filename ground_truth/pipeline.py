@@ -37,7 +37,7 @@ def collect(rpc, first, last, facilitators):
     receipts = batched(rpc, "eth_getTransactionReceipt", fac_hashes)
     claim_ids = {l["topics"][1].lower() for l in proxy_logs["batch_settlement"] if l["topics"][0] == TOPIC_BATCH_CLAIMED}
     channels = channel_lookup.lookup(rpc, claim_ids, last)
-    rows = {"w0": [], "payments": [], "removed": []}
+    rows = {"transfers": [], "w0": [], "payments": [], "removed": []}
     for r in receipts:
         out = classify(r, sender[r["transactionHash"]], facilitators, channels)
         for k in rows:

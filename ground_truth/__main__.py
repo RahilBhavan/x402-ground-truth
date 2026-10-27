@@ -3,7 +3,8 @@ import json
 import sys
 from pathlib import Path
 
-from . import capture, hour
+from . import capture, census, facilitators, hour, reconcile, waterfall
+from .constants import X402_CONTRACTS_COMMIT, X402SCAN_COMMIT
 from .rpc import Rpc, RpcError
 
 
@@ -17,7 +18,25 @@ def main():
     h.add_argument("--out", default="out/s1")
     h.add_argument("--cache", default="out/cache")
     h.add_argument("--no-scan", action="store_true", help="skip the block-by-block coverage scan")
+    k = sub.add_parser("run", help="slice 3: census of the complete x402scan buckets, reconciliation and waterfall")
+    k.add_argument("--buckets", required=True, help="out/reconcile/x402scan-buckets-*.json")
+    k.add_argument("--db", default="out/settlements.sqlite")
+    k.add_argument("--cache", default="out/cache")
     a = ap.parse_args()
+    if a.cmd == "run":
+        try:
+            db = census.run(Rpc(cache_dir=Path(a.cache)), a.buckets, a.db, facilitators.load(),
+                            log=lambda m: print(m, flush=True))
+        except RpcError as e:
+            print(e, file=sys.stderr)
+            sys.exit(3)
+        out = Path(a.db).parent
+        share = json.loads((out / "reconcile/hour-coverage.json").read_text())["missed_share_of_w0_usdc"]
+        summary = reconcile.write(reconcile.by_bucket(db), out / "reconcile/x402scan.csv", share)
+        w = waterfall.build(db, X402SCAN_COMMIT, X402_CONTRACTS_COMMIT)
+        (out / "waterfall.json").write_text(json.dumps({**w, "reconcile": summary}, indent=1, sort_keys=True))
+        print(json.dumps(summary, indent=1))
+        return
     if a.cmd == "capture":
         path, rec = capture.capture(a.days)
         print(f"{path}: {rec['stats']['total_transactions']:,} tx, ${rec['usdc']:,.2f} ({a.days}d, base)")

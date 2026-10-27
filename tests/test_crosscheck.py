@@ -45,6 +45,20 @@ class ChannelLookup(unittest.TestCase):
         spans = [(int(r[0]["params"][0]["fromBlock"], 16), int(r[0]["params"][0]["toBlock"], 16)) for r in fake.requests]
         self.assertEqual(spans, [(100_000, 149_999), (50_000, 99_999)])
 
+    def test_a_refused_old_range_ends_the_walk_instead_of_failing(self):
+        from tests.fake_rpc import Rate
+
+        def answer(method, params):
+            if int(params[0]["toBlock"], 16) < 100_000:
+                raise Rate()  # the fake's refusal stands in for the node's HTTP 403 on old ranges
+            return []
+
+        fake = FakeRpc(answer)
+        self.addCleanup(fake.close)
+        with tempfile.TemporaryDirectory() as tmp:
+            found = channels.lookup(Rpc(fake.url, Path(tmp), pause=0, tries=1), {"0x" + "c9" * 32}, 149_999)
+        self.assertEqual(found, {})
+
 
 if __name__ == "__main__":
     unittest.main()

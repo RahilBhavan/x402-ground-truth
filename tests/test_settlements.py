@@ -33,11 +33,20 @@ class Classify(unittest.TestCase):
         out = run([auth_used(0, PAYER), transfer(1, PAYER, ROUTER, 30_906_598), transfer(2, ROUTER, PAYEE, 30_597_533)])
         self.assertEqual([r["reason"] for r in out["removed"]], ["second_hop"])
 
-    def test_unmarked_transfer_in_facilitator_transaction_is_a_non_payment(self):  # W1
+    def test_facilitator_transaction_with_no_x402_marker_is_removed_as_unmarked(self):  # W1, slice 3 finding
         out = run([transfer(0, OTHER, PAYEE, 7_000)])
         self.assertEqual(out["payments"], [])
+        self.assertEqual([r["reason"] for r in out["removed"]], ["unmarked"])
+        self.assertEqual(len(out["w0"]), 1)  # x402scan counts it
+
+    def test_leftover_transfer_in_a_marked_transaction_is_a_non_payment(self):  # W1
+        out = run([auth_used(0, PAYER), transfer(1, PAYER, PAYEE, 5_000), transfer(2, OTHER, PAYEE, 7_000)])
         self.assertEqual([r["reason"] for r in out["removed"]], ["non_payment"])
-        self.assertEqual(len(out["w0"]), 1)
+
+    def test_w0_is_x402scans_collapsed_row_and_transfers_keeps_every_leg(self):  # slice 3 finding
+        out = run([auth_used(0, PAYER), transfer(1, PAYER, ROUTER, 1_000), transfer(2, ROUTER, PAYEE, 990)])
+        self.assertEqual([(r["payer"], r["payee"], r["atomic"]) for r in out["w0"]], [(PAYER, PAYEE, 990)])
+        self.assertEqual(len(out["transfers"]), 2)
 
     def test_batch_claim_is_a_payment_and_its_payout_is_a_channel_movement(self):  # slice 1 finding 3
         channels = {"0x" + "c1" * 32: {"payer": PAYER, "receiver": PAYEE}}

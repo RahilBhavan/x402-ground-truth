@@ -22,6 +22,15 @@ SRC = """
 """
 
 
+class SyncedByX402scan(unittest.TestCase):
+    def test_a_deprecated_facilitator_or_address_is_not_synced(self):
+        from ground_truth.facilitators import parse_facilitator
+        live = "export const f = { id: 'x', " + SRC + " };"
+        dead = "export const f = { id: 'x', deprecated: true, " + SRC + " };"
+        self.assertEqual([a["x402scan_synced"] for a in parse_facilitator(live)], [True, False])
+        self.assertEqual([a["x402scan_synced"] for a in parse_facilitator(dead)], [False, False])
+
+
 class ParseBase(unittest.TestCase):
     def test_reads_only_base_addresses_lowercased_with_deprecated_flag(self):
         self.assertEqual(parse_base(SRC), [
