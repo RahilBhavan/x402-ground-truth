@@ -114,7 +114,9 @@ def slices():
 
 
 def prd_html():
-    text = (ROOT / "docs/prd.md").read_text().split("\n---\n", 1)[1]
+    parts = [(ROOT / f"docs/prd/{n}").read_text() for n in ("1-product.md", "2-evidence.md", "3-build.md")]
+    first = parts[0].split("\n---\n", 1)[1].split("\nContinued in")[0]
+    text = "\n\n".join([first] + [part[part.index("\n## "):] for part in parts[1:]])
     drawn = iter([flow(), ladder(), slices()])
     text = re.sub(r"```mermaid\n.*?```", lambda _: f"\n\n{next(drawn)}\n\n", text, flags=re.S)
     return md(text)
@@ -178,7 +180,7 @@ and none of the adjusted ones can be rerun. This is the plan to measure it with 
 {review_html()}</section>
 <section class="story" id="slice1"><h2>Slice 1: one hour, one number</h2>{md(s1)}</section>
 </main>
-<footer class="footer">rahil-design {(BUNDLE / "VERSION").read_text().strip()} · Design review pending · Built from docs/prd.md, review/ and out/s1/</footer>
+<footer class="footer">rahil-design {(BUNDLE / "VERSION").read_text().strip()} · Design review pending · Built from docs/prd/, review/ and out/s1/</footer>
 </div>"""
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(document("x402 ground truth: plan and first hour", body, extra_css=CSS))

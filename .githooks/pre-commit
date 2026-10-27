@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+"""Pre-commit: staged files stay under 5,000 tokens (bytes / 4), and visuals pass the rahil-design guard."""
+import subprocess
+import sys
+from pathlib import Path
+
+MAX_BYTES = 20_000
+GUARD = Path("/home/rahil/.t3/projects/main/scripts/hooks/design_guard.py")
+SKIP = (".png", ".jpg", ".svg", ".mp4", ".pdf", ".lock")
+
+staged = [p for p in subprocess.run(["git", "diff", "--cached", "--name-only", "--diff-filter=ACM", "-z"],
+                                    capture_output=True, text=True, check=True).stdout.split("\0") if p]
+problems = []
+for path in staged:
+    size = len(subprocess.run(["git", "show", f":{path}"], capture_output=True, check=True).stdout)
+    if size > MAX_BYTES and not path.endswith(SKIP):
+        problems.append(f"{path}: {size // 4:,} tokens (limit 5,000). Split it by responsibility.")
+if GUARD.exists():
+    result = subprocess.run([sys.executable, str(GUARD), *[str(Path(p).resolve()) for p in staged]],
+                            capture_output=True, text=True)
+    if result.returncode:
+        problems.append(result.stderr.strip() or result.stdout.strip())
+else:
+    print("pre-commit: rahil-design guard not found; visual checks skipped on this machine", file=sys.stderr)
+if problems:
+    print("\n".join(problems), file=sys.stderr)
+    sys.exit(1)
