@@ -46,6 +46,7 @@ class Rpc:
                 out = [out] if isinstance(out, dict) else out
                 byid = {o.get("id"): o for o in out}
                 errors = [o["error"] for o in out if "error" in o]
+                errors += [f"null result for call {i}" for i in range(len(calls)) if i in byid and byid[i].get("result", 0) is None]
                 if not errors and len(byid) == len(calls):
                     results = [byid[i]["result"] for i in range(len(calls))]
                     if shrink:

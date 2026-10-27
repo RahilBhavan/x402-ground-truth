@@ -27,7 +27,7 @@ def main():
         except RpcError as e:
             print(e, file=sys.stderr)
             sys.exit(3)
-        hour.write(result, rows, Path(a.out))
+        hour.write(result, rows, Path(a.out), Path(a.out).parent / "reconcile" / "hour-coverage.json")
         print(json.dumps({k: result.get(k) for k in ("first_block", "last_block", "w0", "w1_removed", "w1", "coverage")}, indent=1))
 
 

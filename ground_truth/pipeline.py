@@ -6,7 +6,7 @@ from .constants import PROXIES, TOPIC_AUTHORIZATION_USED, TOPIC_BATCH_CLAIMED, U
 from .settlements import classify
 
 CHUNK = 300  # blocks per eth_getLogs; ~2,000 AuthorizationUsed logs per chunk, well under the 20,000 cap
-BATCH = 50
+RPC_BATCH = 50  # calls per JSON-RPC batch request
 
 
 def logs(rpc, address, topic0, first, last):
@@ -22,8 +22,8 @@ def logs(rpc, address, topic0, first, last):
 
 def batched(rpc, method, hashes):
     out = []
-    for i in range(0, len(hashes), BATCH):
-        out += rpc.batch([(method, [h]) for h in hashes[i:i + BATCH]], label=f"{method} x{len(hashes[i:i + BATCH])}")
+    for i in range(0, len(hashes), RPC_BATCH):
+        out += rpc.batch([(method, [h]) for h in hashes[i:i + RPC_BATCH]], label=f"{method} x{len(hashes[i:i + RPC_BATCH])}")
     return out
 
 

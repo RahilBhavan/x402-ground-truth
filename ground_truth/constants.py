@@ -21,6 +21,7 @@ PROXIES = {
     "upto": "0x4020a4f3b7b90cca423b9fabcc0ce57c6c240002",
     "batch_settlement": "0x4020074e9df2ce1dee5a9c1b5c3f541d02a10003",
 }
+BATCH_CONTRACT = PROXIES["batch_settlement"]
 
 DUST_ATOMIC = 10_000  # $0.01 at 6 decimals
 SECOND_HOP_SHARE = 0.9  # a transfer out of an address that just received at least this share of it is a forward

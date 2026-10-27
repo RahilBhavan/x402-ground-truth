@@ -88,7 +88,7 @@ Part 3 of the PRD; part 1 is [1-product.md](1-product.md).
 | --- | --- | --- | --- |
 | 2026-10-27 | First draft from the Proof Desk idea #4 teardown | DRAFT | — |
 | 2026-10-27 | Slice 2 finding: x402scan's 7-day figure is a materialized view over `NOW() - 7 days` at an unpublished refresh time, but its bucketed series uses exact 3.5-hour buckets. The window becomes the 47 complete buckets 2026-10-20 18:00 to 2026-10-27 14:30 UTC, and AC-4 compares per bucket. | IN (method fix) | 0 criteria; no date moved |
-| 2026-10-27 | Slice 2 finding: batch settlement is a payment channel. Claims are the payments; deposits and payouts are channel movements x402scan counts. W1 adds claims and removes movements. | IN (method fix) | 0 criteria |
+| 2026-10-27 | Slice 2 finding: batch settlement is a payment channel. Claims are the payments; deposits and payouts are channel movements x402scan counts. W1 removes movements and adds claims sent by listed facilitators; claims from other senders are outside W0 and are reported beside the waterfall. | IN (method fix) | 0 criteria |
 | 2026-10-27 | Slice 2 finding: the keyless node refuses old state and `eth_getLogs` spans over 50,000 blocks. Channels older than 2M blocks stay unknown and are reported. | IN (limit) | 0 criteria |
 | 2026-10-27 | Rahil: use rahil-design instead of the exception-desk look | IN | 0 criteria; plan page rebuilt the same day, no slice moved |
 | 2026-10-27 | Red-team round 1 repair: proxy events, rolling 7-day window, keyless census, hours budget, rule definitions | DRAFT | 30-day window cut to 7 days; site moves to 2026-11-17; AC count unchanged at 17 |

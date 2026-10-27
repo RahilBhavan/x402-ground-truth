@@ -6,7 +6,7 @@ import time
 from . import coverage, facilitators
 from .constants import DUST_ATOMIC, USDC, X402_CONTRACTS_COMMIT, X402SCAN_COMMIT
 from .pipeline import batched, collect
-from .settlements import classify
+from .settlements import REASONS
 
 
 def block_at(rpc, ts):
@@ -32,8 +32,7 @@ def summarize(rows):
     group = lambda key: {k: usdc([p for p in pays if p[key] == k]) for k in sorted({p[key] for p in pays})}
     return {
         "w0": usdc(rows["w0"]),
-        "w1_removed": {k: usdc([r for r in rows["removed"] if r["reason"] == k])
-                       for k in ("non_payment", "second_hop", "channel_movement")},
+        "w1_removed": {k: usdc([r for r in rows["removed"] if r["reason"] == k]) for k in REASONS},
         "w1_added_batch_claims": usdc([p for p in pays if p["scheme"] == "batch_settlement"]),
         "w1": usdc(pays),
         "dust_under_1_cent": {**usdc([p for p in pays if p["atomic"] < DUST_ATOMIC]),
@@ -55,30 +54,23 @@ def run(rpc, start_iso, scan=True):
               **meta, **summarize(rows),
               "check_by_hand": [p["tx"] for p in rows["payments"][:: max(len(rows["payments"]) // 5, 1)][:5]]}
     if scan:
-        result["coverage"] = hour_coverage(rpc, first, last, fac, fac_hashes)
+        result["coverage"] = hour_coverage(rpc, first, last, fac, fac_hashes, sum(r["atomic"] for r in rows["w0"]))
     return result, rows
 
 
-def hour_coverage(rpc, first, last, fac, fac_hashes):
+def hour_coverage(rpc, first, last, fac, fac_hashes, w0_atomic):
     scanned = coverage.scan(rpc, first, last, fac)
     missed = sorted(set(scanned) - set(fac_hashes))
-    senders = {t["hash"]: t["from"].lower() for t in batched(rpc, "eth_getTransactionByHash", missed)}
-    missed_w0 = []
-    for r in batched(rpc, "eth_getTransactionReceipt", missed):
-        missed_w0 += classify(r, senders[r["transactionHash"]], fac, {})["w0"]
-    return {"facilitator_txs_by_block_scan": len(scanned), "facilitator_txs_by_nonce": coverage.nonce_count(rpc, first, last, fac),
-            "facilitator_txs_on_log_path": len(fac_hashes),
-            "log_path_txs_not_in_scan": len(set(fac_hashes) - set(scanned)),
-            "missed_by_log_path": {"txs": len(missed), "w0_transfers": usdc(missed_w0)},
-            "missed_share_of_w0_usdc": None}
+    out = coverage.crosscheck(scanned, fac_hashes, batched(rpc, "eth_getTransactionReceipt", missed), w0_atomic)
+    return {**out, "facilitator_txs_by_nonce": coverage.nonce_count(rpc, first, last, fac)}
 
 
-def write(result, rows, out_dir):
+def write(result, rows, out_dir, coverage_path=None):
     out_dir.mkdir(parents=True, exist_ok=True)
-    if "coverage" in result:
-        cov = result["coverage"]
-        total = result["w0"]["usdc"] + cov["missed_by_log_path"]["w0_transfers"]["usdc"]
-        cov["missed_share_of_w0_usdc"] = round(cov["missed_by_log_path"]["w0_transfers"]["usdc"] / total, 4) if total else 0
     (out_dir / "hour.json").write_text(json.dumps(result, indent=1, sort_keys=True))
     for k in ("payments", "removed"):
         (out_dir / f"hour-{k}.jsonl").write_text("".join(json.dumps(r, sort_keys=True) + "\n" for r in rows[k]))
+    if coverage_path and "coverage" in result:
+        coverage_path.parent.mkdir(parents=True, exist_ok=True)
+        coverage_path.write_text(json.dumps({"hour_start_utc": result["hour_start_utc"], "first_block": result["first_block"],
+                                             "last_block": result["last_block"], **result["coverage"]}, indent=1, sort_keys=True))

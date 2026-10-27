@@ -26,7 +26,7 @@ class Classify(unittest.TestCase):
 
     def test_routed_second_hop_is_removed_and_counted_once(self):  # W1, slice 1 finding 1
         out = run([auth_used(0, PAYER), transfer(1, PAYER, ROUTER, 1_000), transfer(2, ROUTER, PAYEE, 1_000)])
-        self.assertEqual([(p["payer"], p["payee"]) for p in out["payments"]], [(PAYER, ROUTER)])
+        self.assertEqual([(p["payer"], p["payee"]) for p in out["payments"]], [(PAYER, PAYEE)])
         self.assertEqual([r["reason"] for r in out["removed"]], ["second_hop"])
 
     def test_forward_of_most_of_a_payment_is_a_second_hop(self):  # slice 1 finding 2: 99% forwarded
@@ -48,8 +48,25 @@ class Classify(unittest.TestCase):
 
     def test_batch_claim_for_unknown_channel_keeps_amount_and_marks_parties_unknown(self):
         out = run([claimed(0, "c2", 9)])
-        self.assertEqual((out["payments"][0]["payer"], out["payments"][0]["atomic"]), ("unknown", 9))
+        self.assertEqual((out["payments"][0]["payer"][:13], out["payments"][0]["atomic"]), ("unknown-payer", 9))
 
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReviewFixes(unittest.TestCase):
+    def test_routed_payment_names_the_final_payee_and_the_router(self):  # S2-5
+        out = run([auth_used(0, PAYER), transfer(1, PAYER, ROUTER, 1_000), transfer(2, ROUTER, PAYEE, 1_000)])
+        p = out["payments"][0]
+        self.assertEqual((p["payer"], p["payee"], p["via"], p["atomic"]), (PAYER, PAYEE, ROUTER, 1_000))
+
+    def test_proxy_transaction_keeps_one_payment_per_settled_event(self):  # S2-6
+        out = run([transfer(0, PAYER, PAYEE, 5_000), transfer(1, FAC, OTHER, 100), proxy_settled(2, "upto")])
+        self.assertEqual([(p["payer"], p["atomic"]) for p in out["payments"]], [(PAYER, 5_000)])
+        self.assertEqual([r["reason"] for r in out["removed"]], ["non_payment"])
+
+    def test_unknown_channel_parties_never_look_like_a_self_payment(self):  # S2-7
+        p = run([claimed(0, "c3", 9)])["payments"][0]
+        self.assertNotEqual(p["payer"], p["payee"])
+        self.assertTrue(p["payer"].startswith("unknown"))
