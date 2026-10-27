@@ -95,6 +95,37 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class NonceGaps(unittest.TestCase):
+    def test_bisects_only_where_the_nonce_rose_more_than_the_known_blocks_explain(self):  # S3-S4
+        sent = [105, 130, 130, 177]  # blocks of the address's transactions; 130 holds two
+        calls = []
+
+        def answer(method, params):
+            calls.append(int(params[1], 16))
+            return hex(sum(b <= int(params[1], 16) for b in sent))
+
+        fake = FakeRpc(answer)
+        self.addCleanup(fake.close)
+        rpc = Rpc(fake.url, Path(tempfile.mkdtemp(dir=Path.home() / "scratch")), pause=0)
+        self.assertEqual(census.gap_blocks(rpc, FAC, 99, 200, 0, 4, [105, 130, 177]), [130])
+        self.assertEqual(census.gap_blocks(rpc, FAC, 99, 200, 0, 4, [105, 130, 130, 177]), [])
+        self.assertLess(len(calls), 20)
+
+
+class Report(unittest.TestCase):
+    def test_writes_the_csv_and_waterfall_without_the_hour_check(self):  # S3-P1: AC-2 from an empty out/
+        out = Path(tempfile.mkdtemp(dir=Path.home() / "scratch"))
+        db = sqlite3.connect(":memory:")
+        db.executescript(census.SCHEMA)
+        db.execute("insert into buckets values ('b', 1, 2, 2, 200, 1, '{}')")
+        db.execute("insert into w0 values ('t1', 0, 'p', 'q', 100, 'f', 's1', 1, 'b')")
+        db.execute("insert into transfers values ('t1', 0, 'p', 'q', 100, 'f', 's1', 1, 'b')")
+        summary = reconcile.report(db, out, "c", "d")
+        self.assertEqual((summary["ratio_usdc"], summary["hour_coverage_check"]), (0.5, "not run"))
+        self.assertIn("ratio_transfers", (out / "reconcile/x402scan.csv").read_text().splitlines()[0])
+        self.assertEqual(json.loads((out / "waterfall.json").read_text())["reconcile"], summary)
+
+
 class UnsyncedAddresses(unittest.TestCase):
     def test_traffic_x402scan_no_longer_syncs_is_its_own_added_step(self):
         db = sqlite3.connect(":memory:")

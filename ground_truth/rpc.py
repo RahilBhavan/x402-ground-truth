@@ -15,7 +15,9 @@ from .constants import RPC_URL
 
 
 class RpcError(RuntimeError):
-    pass
+    def __init__(self, message, status=None):
+        super().__init__(message)
+        self.status = status  # the last HTTP status, when the failure was one
 
 
 class Rpc:
@@ -60,7 +62,8 @@ class Rpc:
                 last = e
             if attempt < self.tries - 1:
                 time.sleep(self.pause * 2 ** attempt)
-        raise RpcError(f"RPC failed{' for ' + label if label else ''} after {self.tries} tries: {last}")
+        raise RpcError(f"RPC failed{' for ' + label if label else ''} after {self.tries} tries: {last}",
+                       status=getattr(last, "code", None))
 
     def call(self, method, params, cache=True, label=""):
         return self.batch([(method, params)], cache=cache, label=label)[0]

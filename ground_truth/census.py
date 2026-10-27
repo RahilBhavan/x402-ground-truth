@@ -169,6 +169,7 @@ def run(rpc, capture, db_path, facilitators, log=print):
                             for r in rows["removed"]])
             db.execute("insert or replace into buckets values (?,?,?,?,?,1,?)",
                        (start, first, last, b["transfers"], int(b["atomic"]), json.dumps(meta, sort_keys=True)))
-        log(f"{start} blocks {first}-{last}: {len(rows['w0'])} W0 transfers vs x402scan {b['transfers']}, "
+        synced = sum(1 for r in rows["w0"] if r["x402scan_synced"])
+        log(f"{start} blocks {first}-{last}: {synced} W0 rows (synced addresses) vs x402scan {b['transfers']}, "
             f"{time.time() - t0:.0f}s")
     return db

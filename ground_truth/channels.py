@@ -23,7 +23,9 @@ def lookup(rpc, channel_ids, last_block):
             logs = rpc.call("eth_getLogs", [{"address": BATCH_CONTRACT, "fromBlock": hex(a), "toBlock": hex(b),
                                              "topics": [TOPIC_BATCH_CHANNEL_CREATED, sorted(wanted - set(found))]}],
                             label=f"ChannelCreated {a}-{b}")
-        except RpcError:  # the node refuses ranges far behind its head (HTTP 403): history ends here
+        except RpcError as e:  # the node refuses ranges far behind its head (HTTP 403): history ends here
+            if e.status != 403:
+                raise
             break
         for l in logs:  # data: ChannelConfig(payer, payerAuthorizer, receiver, receiverAuthorizer, token, delay, salt)
             found[l["topics"][1].lower()] = {"payer": "0x" + word(l["data"], 0)[-40:],

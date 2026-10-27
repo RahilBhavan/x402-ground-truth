@@ -15,6 +15,10 @@ class FakeRpc:
                 fake.requests.append(body)
                 try:
                     out = [{"jsonrpc": "2.0", "id": c["id"], "result": fake.answer(c["method"], c["params"])} for c in body]
+                except Refused:
+                    self.send_response(403)
+                    self.end_headers()
+                    return
                 except Rate:
                     self.send_response(429)
                     self.end_headers()
@@ -38,4 +42,8 @@ class FakeRpc:
 
 
 class Rate(Exception):
+    pass
+
+
+class Refused(Exception):  # the node's HTTP 403 on old ranges
     pass

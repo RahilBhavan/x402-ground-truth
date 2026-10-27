@@ -8,10 +8,9 @@ removals are counted on those legs. A transaction with no x402 marker at all is 
 """
 from collections import Counter
 
-from .x402scan_filter import collapse
-
 from .constants import (BATCH_CONTRACT, PROXIES, SECOND_HOP_SHARE, TOPIC_AUTHORIZATION_USED, TOPIC_BATCH_CLAIMED,
                         TOPIC_PROXY_SETTLED, TOPIC_PROXY_SETTLED_PERMIT, TOPIC_TRANSFER, USDC)
+from .x402scan_filter import collapse
 
 PERMIT_PROXIES = {PROXIES["exact_proxy"]: "exact_proxy", PROXIES["upto"]: "upto"}
 CONTRACTS = set(PROXIES.values())
