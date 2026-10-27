@@ -8,7 +8,7 @@ How much of x402's reported Base volume survives named, rerunnable exclusion rul
 python3 -m unittest discover -s tests        # behaviour tests, offline (fake RPC)
 python3 -m ground_truth capture --days 7     # x402scan rolling Base figure (free tRPC route, never the paid /api/x402)
 python3 -m ground_truth hour                 # slice 1: one hour of Base blocks, keyless
-python3 /home/rahil/.t3/projects/main/.agents/skills/prd-loop/scripts/check_prd.py docs/prd/*.md --sources research/sources.md
+python3 /home/rahil/.t3/projects/main/.agents/skills/prd-loop/scripts/check_prd.py docs/prd/*.md --sources research/sources*.md
 uv run --with markdown python scripts/plan_page.py   # build/plan.html in rahil-design
 ```
 
