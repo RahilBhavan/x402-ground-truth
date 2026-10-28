@@ -15,7 +15,7 @@ Part 2 of the PRD; part 1 is [1-product.md](1-product.md).
 | x402scan's API costs $0.01 per call and offers only rolling 1, 7, 14 and 30-day lookbacks from now, with no per-UTC-day history. | R2 | AC-4 compares against a rolling 7-day figure captured from the free web page, with its timestamp. The paid API is not used. |
 | x402scan's facilitator registry lists 30 facilitators with Base addresses: Coinbase 40 (22 deprecated), PayAI 15. | C2, C3, C4 | The attribution list, pinned at one x402scan commit. |
 | Visa/Artemis ("Agentic Payments from the Ground Up", July 2026, data to 2026-04-21): raw about $135.7M and 178.3M transactions, adjusted about $15.0M and 109.6M. The "$19M" figure appears in one article only. | A1, A2, D2 | The reconciliation table. Quote $15.0M, dated, not $19M. |
-| The Visa/Artemis seller rule as relayed: a seller needs at least 3 adjusted transactions from at least 2 buyers. Not read in the PDF yet. | D3, D1 | Rule W4, marked "as relayed" until slice 6 reads the PDF. |
+| The Visa/Artemis seller rule, read in the PDF: a seller is a wallet that received at least 3 adjusted transactions from at least 2 unique buyers. It counts sellers; the report does not say it removes volume, and its wash and test filters are proprietary. | D3, D1 | W4 uses the same numbers to remove payments to thin payees; the README must not call W4 their rule (docs/slices/s6.md). |
 | Artemis posted a 30-day adjusted figure of $1.6M from a filter for wallets paying themselves or cycling funds. Snippet only. | D5 | A reconciliation row, marked low confidence. Motivates W2 and W3. |
 | A Coinbase employee said 25–30% of x402 transactions may come from leaderboard farming. | D6 | W5's expected size. If W5 removes under 5% of payments, the table says so. |
 | Jan Curn cited about $1M (x402) and about $1,500 (MPP) over 30 days to mid-October, from x402scan and MPPscan, probably all chains. | E1, E5 | A reconciliation row marked "all chains; not comparable as a Base figure". |
@@ -37,7 +37,7 @@ Part 2 of the PRD; part 1 is [1-product.md](1-product.md).
 
 **What would make it wrong.** Decided before slice 1 runs:
 - If the rules together remove less than 5% of raw volume, the "wash traffic" story is wrong, and the headline says so.
-- If the share of W0 dollars kept lands within 5 percentage points of Visa/Artemis's relayed share (about 11% of dollars kept, D3), the headline is "the published adjusted share holds on a later window", labelled as a different window, and the project's value is the rerunnable method. D5 is not a falsifier: it is a snippet from a different month.
+- If the share of W0 dollars kept lands within 5 percentage points of Visa/Artemis's share (11.05% of dollars kept, since launch and not only Base, D3), the headline is "the published adjusted share holds on a later window", labelled as a different window, and the project's value is the rerunnable method. D5 is not a falsifier: it is a snippet from a different month.
 - If W0 differs from the captured x402scan 7-day figure by more than 5% after the hour cross-check's coverage correction, the replication is wrong: rule results are then reported only as shares, and the README says so.
 - Dust is reported, not excluded. x402 exists for sub-cent payments, so "under 1 cent" (E4) describes the product, not fake traffic.
 
@@ -46,7 +46,7 @@ Part 2 of the PRD; part 1 is [1-product.md](1-product.md).
 - W1: keep transfers in a transaction that carries an EIP-3009 `AuthorizationUsed` whose authorizer is the transfer's sender, or a `Settled`/`SettledWithPermit` log from one of the three proxies.
 - W2: remove payer = payee.
 - W3: remove a payment when the payee sends at least 90% of it back to the payer within 24 hours, in any transaction (second log query).
-- W4: remove payments to a payee with fewer than 3 payments from fewer than 2 distinct payers among the payments surviving W1–W3 in the window. Visa/Artemis apply a similar rule over a lifetime (D3); a lifetime row is added only if slice 6 confirms their wording.
+- W4: remove payments to a payee with fewer than 3 payments, or fewer than 2 distinct payers, among the payments surviving W1–W3 in the window. Visa/Artemis's seller rule (D3, read in the PDF) uses the same numbers to count sellers over a lifetime, not to remove volume; no lifetime row is added, because this project has one 7-day window.
 - W5: remove a payer–payee pair's payments on a UTC day when the pair made at least 1,000 payments of one identical amount that day.
 - Dust (under $0.01) is reported for each rule, never removed.
 
