@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ground_truth import census, reconcile, waterfall
+from ground_truth import census, reconcile, results, waterfall
 from ground_truth.constants import TOPIC_AUTHORIZATION_USED
 from ground_truth.rpc import Rpc
 from tests.fake_rpc import FakeRpc
@@ -118,12 +118,12 @@ class Report(unittest.TestCase):
         db = sqlite3.connect(":memory:")
         db.executescript(census.SCHEMA)
         db.execute("insert into buckets values ('b', 1, 2, 2, 200, 1, '{}')")
-        db.execute("insert into w0 values ('t1', 0, 'p', 'q', 100, 'f', 's1', 1, 'b')")
-        db.execute("insert into transfers values ('t1', 0, 'p', 'q', 100, 'f', 's1', 1, 'b')")
-        summary = reconcile.report(db, out, "c", "d")
-        self.assertEqual((summary["ratio_usdc"], summary["hour_coverage_check"]), (0.5, "not run"))
+        db.execute("insert into w0 values ('t1', 0, 1, 'p', 'q', 100, 'f', 's1', 1, 'b')")
+        db.execute("insert into transfers values ('t1', 0, 1, 'p', 'q', 100, 'f', 's1', 1, 'b')")
+        w = results.write(db, None, out, "c", "d")  # no payments: no return query, no request
+        self.assertEqual((w["reconcile"]["ratio_usdc"], w["reconcile"]["hour_coverage_check"]), (0.5, "not run"))
         self.assertIn("ratio_transfers", (out / "reconcile/x402scan.csv").read_text().splitlines()[0])
-        self.assertEqual(json.loads((out / "waterfall.json").read_text())["reconcile"], summary)
+        self.assertEqual(json.loads((out / "waterfall.json").read_text())["reconcile"], w["reconcile"])
 
 
 class UnsyncedAddresses(unittest.TestCase):
@@ -131,10 +131,10 @@ class UnsyncedAddresses(unittest.TestCase):
         db = sqlite3.connect(":memory:")
         db.executescript(census.SCHEMA)
         db.execute("insert into buckets values ('b', 1, 2, 0, 0, 1, '{}')")
-        db.execute("insert into w0 values ('t1', 0, 'p', 'q', 100, 'f', 's1', 1, 'b')")
-        db.execute("insert into w0 values ('t2', 0, 'p', 'q', 40, 'f', 's2', 0, 'b')")
-        db.execute("insert into transfers values ('t1', 0, 'p', 'q', 100, 'f', 's1', 1, 'b')")
-        db.execute("insert into transfers values ('t2', 0, 'p', 'q', 40, 'f', 's2', 0, 'b')")
+        db.execute("insert into w0 values ('t1', 0, 1, 'p', 'q', 100, 'f', 's1', 1, 'b')")
+        db.execute("insert into w0 values ('t2', 0, 1, 'p', 'q', 40, 'f', 's2', 0, 'b')")
+        db.execute("insert into transfers values ('t1', 0, 1, 'p', 'q', 100, 'f', 's1', 1, 'b')")
+        db.execute("insert into transfers values ('t2', 0, 1, 'p', 'q', 40, 'f', 's2', 0, 'b')")
         steps = waterfall.build(db, "c", "d")["steps"]
         self.assertEqual((steps[0]["remaining_atomic"], steps[1]["added_atomic"], steps[1]["remaining_atomic"]), (100, 40, 140))
         self.assertEqual(reconcile.by_bucket(db)[0]["w0_usdc"], 100 / 1e6)

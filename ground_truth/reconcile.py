@@ -1,4 +1,4 @@
-"""AC-4: W0 per x402scan bucket against x402scan's own figure for that bucket, and the files `run` writes.
+"""AC-4: W0 per x402scan bucket against x402scan's own figure for that bucket.
 
 W0 here is x402scan's filter exactly: only addresses its syncer still reads (`synced = 1`), collapsed as it collapses.
 The census finds facilitator transactions with no x402 marker itself, so the hour cross-check (AC-5) is reported
@@ -6,8 +6,6 @@ beside the ratio as a coverage check, not applied as a correction.
 """
 import csv
 import json
-
-from . import waterfall
 
 
 def by_bucket(db):
@@ -41,10 +39,7 @@ def hour_check(path):
     return {k: c[k] for k in ("differences", "missed_with_marker", "log_path_not_in_scan")}
 
 
-def report(db, out, x402scan_commit, contracts_commit):
-    """Write out/reconcile/x402scan.csv and out/waterfall.json; return the reconciliation summary."""
-    summary = {**write(by_bucket(db), out / "reconcile/x402scan.csv"),
-               "hour_coverage_check": hour_check(out / "reconcile/hour-coverage.json")}
-    w = waterfall.build(db, x402scan_commit, contracts_commit)
-    (out / "waterfall.json").write_text(json.dumps({**w, "reconcile": summary}, indent=1, sort_keys=True))
-    return summary
+def summary(db, out):
+    """Write out/reconcile/x402scan.csv; return the reconciliation summary for out/waterfall.json."""
+    return {**write(by_bucket(db), out / "reconcile/x402scan.csv"),
+            "hour_coverage_check": hour_check(out / "reconcile/hour-coverage.json")}

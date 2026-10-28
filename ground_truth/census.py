@@ -25,18 +25,15 @@ from .settlements import classify
 WORKERS = int(os.environ.get("GROUND_TRUTH_WORKERS", 4))  # two per node in RPC_POOL; publicnode alone throttled 3
 KEEP = {USDC, *PROXIES.values()}
 
+LEG = ("tx", "log_index", "block", "payer", "payee", "atomic")
+TAIL = ("facilitator", "sender", "synced", "bucket_start")
+COLUMNS = {"transfers": LEG + TAIL, "w0": LEG + TAIL, "payments": LEG + ("via", "scheme") + TAIL,
+           "removed": LEG + ("reason",) + TAIL}
 SCHEMA = """
 create table if not exists buckets (bucket_start text primary key, first_block int, last_block int,
   x402scan_transfers int, x402scan_atomic int, done int default 0, meta text);
-create table if not exists transfers (tx text, log_index int, payer text, payee text, atomic int, facilitator text,
-  sender text, synced int, bucket_start text, primary key (tx, log_index));
-create table if not exists w0 (tx text, log_index int, payer text, payee text, atomic int, facilitator text,
-  sender text, synced int, bucket_start text, primary key (tx, log_index));
-create table if not exists payments (tx text, log_index int, payer text, payee text, via text, atomic int, scheme text,
-  facilitator text, sender text, synced int, bucket_start text, primary key (tx, log_index));
-create table if not exists removed (tx text, log_index int, payer text, payee text, atomic int, reason text,
-  facilitator text, sender text, synced int, bucket_start text, primary key (tx, log_index));
-"""
+""" + "".join(f"create table if not exists {t} ({', '.join(cols)}, primary key (tx, log_index));\n"
+              for t, cols in COLUMNS.items())
 
 
 def iso(ts):
@@ -108,7 +105,7 @@ def unmarked(rpc, first, last, facilitators, known):
         found = pool.map(lambda a: gap_blocks(rpc, a, first - 1, last, start[a], end[a], sorted(known.get(a, ()))), todo)
     blocks = sorted({b for part in found for b in part})
     shrink = lambda b: [shrink_tx(t) for t in b["transactions"] if t["from"].lower() in facilitators]
-    return [t for part in parallel_blocks(rpc, blocks, shrink) for t in part]
+    return [{**t, "block": n} for n, part in zip(blocks, parallel_blocks(rpc, blocks, shrink)) for t in part]
 
 
 def parallel_blocks(rpc, blocks, shrink):
@@ -131,6 +128,7 @@ def bucket_rows(rpc, first, last, facilitators):
         known.setdefault(sender[h], []).append(block[h])
     extra = [t for t in unmarked(rpc, first, last, facilitators, known) if t["hash"] not in block]
     sender.update({t["hash"]: t["from"].lower() for t in extra})
+    block.update({t["hash"]: t["block"] for t in extra})
     receipts = parallel(rpc, "eth_getTransactionReceipt", fac_hashes + sorted(t["hash"] for t in extra), shrink_receipt)
     claim_ids = {l["topics"][1].lower() for l in proxy["batch_settlement"] if l["topics"][0] == TOPIC_BATCH_CLAIMED}
     chans = channel_lookup.lookup(rpc, claim_ids, last)
@@ -138,7 +136,7 @@ def bucket_rows(rpc, first, last, facilitators):
     for r in receipts:
         out = classify(r, sender[r["transactionHash"]], facilitators, chans)
         for k in rows:
-            rows[k] += out[k]
+            rows[k] += [{**x, "block": block[r["transactionHash"]]} for x in out[k]]
     meta = {"authorization_used_logs": len(marker), "proxy_logs": {k: len(v) for k, v in proxy.items()},
             "facilitator_txs": len(fac_hashes), "unmarked_facilitator_txs": len(extra), "batch_channels_resolved": f"{len(chans)}/{len(claim_ids)}"}
     return rows, meta
@@ -157,16 +155,10 @@ def run(rpc, capture, db_path, facilitators, log=print):
         with db:  # one transaction per bucket: all rows and the done mark, or nothing
             for table in rows:
                 db.execute(f"delete from {table} where bucket_start = ?", (start,))
-            tail = lambda r: (r["facilitator"], r["sender"], int(r["x402scan_synced"]), start)
-            for table in ("transfers", "w0"):
-                db.executemany(f"insert into {table} values (?,?,?,?,?,?,?,?,?)",
-                               [(r["tx"], r["log_index"], r["payer"], r["payee"], r["atomic"], *tail(r)) for r in rows[table]])
-            db.executemany("insert into payments values (?,?,?,?,?,?,?,?,?,?,?)",
-                           [(r["tx"], r["log_index"], r["payer"], r["payee"], r["via"], r["atomic"], r["scheme"], *tail(r))
-                            for r in rows["payments"]])
-            db.executemany("insert into removed values (?,?,?,?,?,?,?,?,?,?)",
-                           [(r["tx"], r["log_index"], r["payer"], r["payee"], r["atomic"], r["reason"], *tail(r))
-                            for r in rows["removed"]])
+            for table, cols in COLUMNS.items():
+                db.executemany(f"insert into {table} ({', '.join(cols)}) values ({', '.join('?' * len(cols))})",
+                               [tuple({**r, "synced": int(r["x402scan_synced"]), "bucket_start": start}[c] for c in cols)
+                                for r in rows[table]])
             db.execute("insert or replace into buckets values (?,?,?,?,?,1,?)",
                        (start, first, last, b["transfers"], int(b["atomic"]), json.dumps(meta, sort_keys=True)))
         synced = sum(1 for r in rows["w0"] if r["x402scan_synced"])
