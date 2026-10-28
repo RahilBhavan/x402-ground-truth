@@ -41,10 +41,10 @@ Part 3 of the PRD; part 1 is [1-product.md](1-product.md).
 | AC-3 | `out/waterfall.json` records the first and last block numbers, the x402scan commit SHA of the facilitator list and a version string per rule. | `out/waterfall.json` | [ ] |
 | AC-4 | `out/reconcile/x402scan.csv` gives, for each of the 47 buckets, x402scan's transfer count and USDC, this project's W0 count and USDC and their ratio; `out/waterfall.json` holds the summed ratio, with AC-5's hour cross-check reported beside it. | `out/reconcile/x402scan.csv` | [ ] |
 | AC-5 | For the hour starting 2026-10-25 14:00 UTC, a full-block scan lists every transaction sent by a listed facilitator; `out/reconcile/hour-coverage.json` gives the count and USDC of those the log-based census missed, and the census rows for that hour equal the scan's rows that carry an x402 marker, with 0 differences. | `tests/test_crosscheck.py` | [ ] |
-| AC-6 | Each rule W1–W5 is a function in `ground_truth/rules.py` with a test fixture holding at least 1 transfer it removes and 1 it keeps. | `python -m unittest` | [ ] |
-| AC-7 | For each rule, `out/waterfall.json` lists payments removed, USDC removed in atomic units and the remainder, and each remainder equals the previous remainder minus the removed amount. | `tests/test_waterfall.py` | [ ] |
-| AC-8 | `out/examples/<rule>.csv` holds 5 transaction hashes per rule, and each returns a receipt with `status` `0x1` from the RPC. | `scripts/check_examples.py` | [ ] |
-| AC-9 | `out/sensitivity.csv` gives the kept USDC total with each threshold in W3–W5 at 0.5x, 1x and 2x its default. | `out/sensitivity.csv` | [ ] |
+| AC-6 | Each rule W1–W5 is a function in `ground_truth/rules.py` with a test fixture holding at least 1 transfer it removes and 1 it keeps. | `python -m unittest` | [x] |
+| AC-7 | For each rule, `out/waterfall.json` lists payments removed, USDC removed in atomic units and the remainder, and each remainder equals the previous remainder minus the removed amount. | `tests/test_waterfall.py` | [x] |
+| AC-8 | `out/examples/<rule>.csv` holds 5 transaction hashes per rule, and each returns a receipt with `status` `0x1` from the RPC. | `scripts/check_examples.py` | [x] |
+| AC-9 | `out/sensitivity.csv` gives the kept USDC total with each threshold in W3–W5 at 0.5x, 1x and 2x its default. | `out/sensitivity.csv` | [x] |
 | AC-10 | A transaction carrying 3 `AuthorizationUsed` events counts as 3 payments, and a transaction with a `Settled` log from the upto proxy `0x4020A4f3b7b90ccA423B9fabCc0CE57C6C240002` passes W1. | `tests/test_settlements.py` | [ ] |
 | AC-11 | The reconciliation table lists x402scan, Visa/Artemis, Artemis 30-day, Curn and BeInCrypto with window, chains, definition, publication date and a "comparable" column; BeInCrypto's row reads "no: about 94.5% Solana". | `site/index.html` | [ ] |
 | AC-12 | The headline sentence on `site/index.html` contains the W0 and kept USDC totals and the window dates, and they equal the values in `out/waterfall.json`. | `scripts/check_site.py` | [ ] |
@@ -52,7 +52,7 @@ Part 3 of the PRD; part 1 is [1-product.md](1-product.md).
 | AC-14 | With a fake RPC that returns HTTP 429 every time, the CLI exits with code 3 after 5 tries; a rerun after the fake recovers fetches no chunk already in `out/cache/`. | `tests/test_rpc_retry.py` | [ ] |
 | AC-15 | No payer or payee address from `out/settlements.sqlite` appears in any file in `site/`. | `scripts/check_site.py` | [ ] |
 | AC-16 | `docs/preregistration.md` holds the falsifiers from section 9, committed before the first commit that adds a 7-day `out/waterfall.json` hash to the README. | `git log --follow` | [ ] |
-| AC-17 | Every number in the README's Results section names the `out/` file it comes from. | README review against `out/` | [ ] |
+| AC-17 | Every number in the README's Results section names the `out/` file it comes from. | README review against `out/` | [x] |
 
 ## 14. Data and scale
 
