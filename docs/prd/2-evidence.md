@@ -37,7 +37,7 @@ Part 2 of the PRD; part 1 is [1-product.md](1-product.md).
 
 **What would make it wrong.** Decided before slice 1 runs:
 - If the rules together remove less than 5% of raw volume, the "wash traffic" story is wrong, and the headline says so.
-- If the share of W0 dollars kept lands within 5 percentage points of Visa/Artemis's share (11.05% of dollars kept, lifetime and all chains, D3), the headline is "the published adjusted share holds on a later window", labelled as a different window, and the project's value is the rerunnable method. D5 is not a falsifier: it is a snippet from a different month.
+- If the share of W0 dollars kept lands within 5 percentage points of Visa/Artemis's share (11.05% of dollars kept, since launch and not only Base, D3), the headline is "the published adjusted share holds on a later window", labelled as a different window, and the project's value is the rerunnable method. D5 is not a falsifier: it is a snippet from a different month.
 - If W0 differs from the captured x402scan 7-day figure by more than 5% after the hour cross-check's coverage correction, the replication is wrong: rule results are then reported only as shares, and the README says so.
 - Dust is reported, not excluded. x402 exists for sub-cent payments, so "under 1 cent" (E4) describes the product, not fake traffic.
 

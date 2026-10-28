@@ -9,7 +9,7 @@ The 47 complete 3.5-hour buckets of x402scan's bucketed 7-day Base series, captu
 ## Falsifiers
 
 1. **No wash story.** If W2–W5 together remove less than 5% of W1 dollars, the headline says that the published "fake traffic" story does not hold on this window.
-2. **The published share holds.** If the share of W0 dollars kept lands within 5 percentage points of the Visa/Artemis share (11.05% of dollars kept, lifetime and all chains, source D3 read in the PDF), the headline is "the published adjusted share holds on a later window", labelled as a different window.
+2. **The published share holds.** If the share of W0 dollars kept lands within 5 percentage points of the Visa/Artemis share (11.05% of dollars kept, since launch and not only Base, source D3 read in the PDF), the headline is "the published adjusted share holds on a later window", labelled as a different window.
 3. **Replication.** If W0 summed over the 47 buckets differs from x402scan's sum of the same buckets by more than 5% after the hour coverage correction (AC-5), the replication is wrong. Rule results are then reported only as shares, and the README says so.
 
 ## Rule thresholds (defaults; sensitivity at 0.5x and 2x)
