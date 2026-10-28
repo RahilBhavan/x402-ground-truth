@@ -4,7 +4,7 @@ from ground_truth.constants import (PROXIES, TOPIC_AUTHORIZATION_USED, TOPIC_BAT
 
 FAC = "0x" + "fa" * 20
 PAYER, PAYEE, ROUTER, OTHER = ("0x" + c * 40 for c in "1234")
-FACILITATORS = {FAC: {"facilitator": "test", "deprecated": False}}
+FACILITATORS = {FAC: {"facilitator": "test", "deprecated": False, "x402scan_synced": True}}
 
 
 def topic(addr):

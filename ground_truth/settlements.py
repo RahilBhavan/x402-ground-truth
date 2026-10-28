@@ -3,15 +3,18 @@
 classify() is pure: a receipt, its sender, the facilitator list and known batch channels in; rows out.
 A payment is counted once, at the payer's own transfer. When the money is forwarded inside the transaction,
 the payment's payee becomes the final recipient and `via` names the first address it passed through.
+W0 is x402scan's row for the transaction (its pass-through collapse); `transfers` keeps every USDC leg, and W1's
+removals are counted on those legs. A transaction with no x402 marker at all is removed whole, as `unmarked`.
 """
 from collections import Counter
 
 from .constants import (BATCH_CONTRACT, PROXIES, SECOND_HOP_SHARE, TOPIC_AUTHORIZATION_USED, TOPIC_BATCH_CLAIMED,
                         TOPIC_PROXY_SETTLED, TOPIC_PROXY_SETTLED_PERMIT, TOPIC_TRANSFER, USDC)
+from .x402scan_filter import collapse
 
 PERMIT_PROXIES = {PROXIES["exact_proxy"]: "exact_proxy", PROXIES["upto"]: "upto"}
 CONTRACTS = set(PROXIES.values())
-REASONS = ("non_payment", "second_hop", "channel_movement")
+REASONS = ("unmarked", "non_payment", "second_hop", "channel_movement")
 
 
 def addr(topic):
@@ -28,16 +31,21 @@ def _transfers(logs):
 
 
 def classify(receipt, sender, facilitators, channels):
-    """None if outside W0. Otherwise {"w0": transfers, "payments": rows, "removed": rows with a reason in REASONS}."""
+    """None if outside W0. Otherwise {"transfers", "w0", "payments", "removed" (each with a reason in REASONS)}."""
     sender = sender.lower()
     if sender not in facilitators:
         return None
     logs = receipt["logs"]
-    base = {"tx": receipt["transactionHash"], "facilitator": facilitators[sender]["facilitator"]}
+    base = {"tx": receipt["transactionHash"], "facilitator": facilitators[sender]["facilitator"], "sender": sender,
+            "x402scan_synced": facilitators[sender].get("x402scan_synced", True)}
     authorizers = Counter(addr(l["topics"][1]) for l in logs if _from(l, USDC, TOPIC_AUTHORIZATION_USED))
     settles = [PERMIT_PROXIES[l["address"].lower()] for l in logs if l["address"].lower() in PERMIT_PROXIES
                and l["topics"][0] in (TOPIC_PROXY_SETTLED, TOPIC_PROXY_SETTLED_PERMIT)]
     transfers = _transfers(logs)
+    w0 = [{**base, **t} for t in collapse(transfers)]
+    if not any(l["address"].lower() in CONTRACTS or _from(l, USDC, TOPIC_AUTHORIZATION_USED) for l in logs):
+        return {"transfers": [{**base, **t} for t in transfers], "w0": w0, "payments": [],
+                "removed": [{**base, **t, "reason": "unmarked"} for t in transfers]}
     payments, removed = [], []
     holder = {}  # address -> (payment, amount it received), for following a forward
 
@@ -72,4 +80,4 @@ def classify(receipt, sender, facilitators, channels):
                              "payee": channel["receiver"], "atomic": int(l["data"][2:66], 16),
                              "scheme": "batch_settlement", "via": None})
     payments.sort(key=lambda p: p["log_index"])
-    return {"w0": [{**base, **t} for t in transfers], "payments": payments, "removed": removed}
+    return {"transfers": [{**base, **t} for t in transfers], "w0": w0, "payments": payments, "removed": removed}

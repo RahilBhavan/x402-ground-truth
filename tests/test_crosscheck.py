@@ -4,8 +4,8 @@ from pathlib import Path
 
 from ground_truth import channels
 from ground_truth.coverage import crosscheck
-from ground_truth.rpc import Rpc
-from tests.fake_rpc import FakeRpc
+from ground_truth.rpc import Rpc, RpcError
+from tests.fake_rpc import FakeRpc, Rate, Refused
 from tests.fixtures import PAYER, PAYEE, auth_used, receipt, transfer
 
 A, B, C = ("0x" + c * 64 for c in "abc")
@@ -44,6 +44,26 @@ class ChannelLookup(unittest.TestCase):
         self.assertEqual(found, {cid: {"payer": PAYER, "receiver": PAYEE}})
         spans = [(int(r[0]["params"][0]["fromBlock"], 16), int(r[0]["params"][0]["toBlock"], 16)) for r in fake.requests]
         self.assertEqual(spans, [(100_000, 149_999), (50_000, 99_999)])
+
+    def test_a_refused_old_range_ends_the_walk_instead_of_failing(self):
+        found = self.walk(Refused)
+        self.assertEqual(found, {})
+
+    def test_a_rate_limit_during_the_walk_fails_the_run_instead_of_ending_history(self):  # S3-P7
+        with self.assertRaises(RpcError) as e:
+            self.walk(Rate)
+        self.assertEqual(e.exception.status, 429)
+
+    def walk(self, error):
+        def answer(method, params):
+            if int(params[0]["toBlock"], 16) < 100_000:
+                raise error()
+            return []
+
+        fake = FakeRpc(answer)
+        self.addCleanup(fake.close)
+        with tempfile.TemporaryDirectory() as tmp:
+            return channels.lookup(Rpc(fake.url, Path(tmp), pause=0, tries=1), {"0x" + "c9" * 32}, 149_999)
 
 
 if __name__ == "__main__":

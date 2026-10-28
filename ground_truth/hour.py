@@ -32,6 +32,7 @@ def summarize(rows):
     group = lambda key: {k: usdc([p for p in pays if p[key] == k]) for k in sorted({p[key] for p in pays})}
     return {
         "w0": usdc(rows["w0"]),
+        "transfers": usdc(rows["transfers"]),
         "w1_removed": {k: usdc([r for r in rows["removed"] if r["reason"] == k]) for k in REASONS},
         "w1_added_batch_claims": usdc([p for p in pays if p["scheme"] == "batch_settlement"]),
         "w1": usdc(pays),
@@ -54,7 +55,7 @@ def run(rpc, start_iso, scan=True):
               **meta, **summarize(rows),
               "check_by_hand": [p["tx"] for p in rows["payments"][:: max(len(rows["payments"]) // 5, 1)][:5]]}
     if scan:
-        result["coverage"] = hour_coverage(rpc, first, last, fac, fac_hashes, sum(r["atomic"] for r in rows["w0"]))
+        result["coverage"] = hour_coverage(rpc, first, last, fac, fac_hashes, sum(r["atomic"] for r in rows["transfers"]))
     return result, rows
 
 

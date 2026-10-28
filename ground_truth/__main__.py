@@ -3,7 +3,8 @@ import json
 import sys
 from pathlib import Path
 
-from . import capture, hour
+from . import capture, census, facilitators, hour, reconcile
+from .constants import X402_CONTRACTS_COMMIT, X402SCAN_COMMIT
 from .rpc import Rpc, RpcError
 
 
@@ -17,7 +18,21 @@ def main():
     h.add_argument("--out", default="out/s1")
     h.add_argument("--cache", default="out/cache")
     h.add_argument("--no-scan", action="store_true", help="skip the block-by-block coverage scan")
+    r = sub.add_parser("run", help="slice 3: census of the complete x402scan buckets, reconciliation and waterfall")
+    r.add_argument("--buckets", required=True, help="out/reconcile/x402scan-buckets-*.json")
+    r.add_argument("--db", default="out/settlements.sqlite")
+    r.add_argument("--cache", default="out/cache")
     a = ap.parse_args()
+    if a.cmd == "run":
+        try:
+            db = census.run(Rpc(cache_dir=Path(a.cache)), a.buckets, a.db, facilitators.load(),
+                            log=lambda m: print(m, flush=True))
+        except RpcError as e:
+            print(e, file=sys.stderr)
+            sys.exit(3)
+        summary = reconcile.report(db, Path(a.db).parent, X402SCAN_COMMIT, X402_CONTRACTS_COMMIT)
+        print(json.dumps(summary, indent=1))
+        return
     if a.cmd == "capture":
         path, rec = capture.capture(a.days)
         print(f"{path}: {rec['stats']['total_transactions']:,} tx, ${rec['usdc']:,.2f} ({a.days}d, base)")

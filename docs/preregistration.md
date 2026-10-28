@@ -29,3 +29,4 @@ Dust (under $0.01) is reported for every rule and never removed.
 | Date | Change | Why |
 | --- | --- | --- |
 | 2026-10-27 | Window changed from "7 days ending at the capture" to the 47 complete x402scan buckets, before the census ran | x402scan's rolling total starts at an unpublished refresh time; the buckets have exact bounds (slice 2 finding 1) |
+| 2026-10-27 | W0 now applies x402scan's pass-through collapse and includes facilitator-sent transactions with no x402 marker; W1 removes those as `unmarked`. Made after the first census bucket was seen (W0 13.7% over x402scan) and before the other 46 ran. No threshold changed | x402scan's code does both (sources O6, O7); without them W0 is not x402scan's filter |

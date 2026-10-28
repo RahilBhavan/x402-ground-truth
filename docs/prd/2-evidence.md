@@ -11,7 +11,7 @@ Part 2 of the PRD; part 1 is [1-product.md](1-product.md).
 | EIP-3009 emits `AuthorizationUsed` plus `Transfer`; any EIP-3009 user emits it, not only x402. | B3, B7, B8 | Settlement = `AuthorizationUsed` in a facilitator-sent transaction, not every `AuthorizationUsed`. |
 | v2 adds `upto` and `batch-settlement`, so one transaction can carry several payments. | B5 | Count payments per authorization, not per transaction (AC-11). |
 | Base USDC is `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`, 6 decimals. Not yet checked against Circle's docs. | B6 | Slice 1 confirms it by reading `decimals()` and `symbol()` from the contract. |
-| x402scan counts every USDC `Transfer` in a transaction whose sender is a listed facilitator, with no further filter. Since 2026-06-09 its Base data comes from Bitquery; the CDP syncer is disabled. Main was at commit `5732bb83` on 2026-10-27. | C5, C6, C7, R4 | W0 reproduces the filter. A CDP-versus-Bitquery row difference is a reconciliation item, not a replication failure. |
+| x402scan counts every USDC `Transfer` in a transaction whose sender is a synced listed facilitator address, x402 marker or not, after merging pass-through chains inside a transaction into one row (its issue #1024). Since 2026-06-09 its Base data comes from Bitquery; the CDP syncer is disabled. Main was at commit `5732bb83` on 2026-10-27. | C5, C6, C7, R4, O5, O6, O7 | W0 reproduces the filter. A CDP-versus-Bitquery row difference is a reconciliation item, not a replication failure. |
 | x402scan's API costs $0.01 per call and offers only rolling 1, 7, 14 and 30-day lookbacks from now, with no per-UTC-day history. | R2 | AC-4 compares against a rolling 7-day figure captured from the free web page, with its timestamp. The paid API is not used. |
 | x402scan's facilitator registry lists 30 facilitators with Base addresses: Coinbase 40 (22 deprecated), PayAI 15. | C2, C3, C4 | The attribution list, pinned at one x402scan commit. |
 | Visa/Artemis ("Agentic Payments from the Ground Up", July 2026, data to 2026-04-21): raw about $135.7M and 178.3M transactions, adjusted about $15.0M and 109.6M. The "$19M" figure appears in one article only. | A1, A2, D2 | The reconciliation table. Quote $15.0M, dated, not $19M. |
@@ -42,7 +42,7 @@ Part 2 of the PRD; part 1 is [1-product.md](1-product.md).
 - Dust is reported, not excluded. x402 exists for sub-cent payments, so "under 1 cent" (E4) describes the product, not fake traffic.
 
 **Rule definitions (v1).** Each removes payments that survive the rules before it.
-- W0: every USDC `Transfer` in a transaction sent by a listed facilitator (x402scan's filter).
+- W0: every USDC `Transfer` in a transaction sent by a synced listed facilitator address, with x402scan's pass-through collapse applied (x402scan's filter; `ground_truth/x402scan_filter.py`). W1 then works on every leg, and the waterfall adds the merged legs back as its own step.
 - W1: keep transfers in a transaction that carries an EIP-3009 `AuthorizationUsed` whose authorizer is the transfer's sender, or a `Settled`/`SettledWithPermit` log from one of the three proxies.
 - W2: remove payer = payee.
 - W3: remove a payment when the payee sends at least 90% of it back to the payer within 24 hours, in any transaction (second log query).

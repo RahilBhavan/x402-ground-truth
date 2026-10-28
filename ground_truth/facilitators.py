@@ -29,18 +29,30 @@ def parse_base(ts_source):
     return out
 
 
+def parse_facilitator(ts_source):
+    """Base addresses with `x402scan_synced`: x402scan's syncer skips deprecated addresses and drops a deprecated
+    facilitator entirely (sync/transfers/trigger/lib/facilitators.ts at the pinned commit)."""
+    head = ts_source.split("addresses:", 1)[0]
+    facilitator_deprecated = re.search(r"deprecated:\s*true", head) is not None
+    return [{**a, "x402scan_synced": not (facilitator_deprecated or a["deprecated"])} for a in parse_base(ts_source)]
+
+
+FORMAT = 2  # bump when the cached shape changes
+
+
 def load(cache=Path("out/facilitators.json"), commit=X402SCAN_COMMIT):
-    """{address: {"facilitator": id, "deprecated": bool}} for every Base address."""
+    """{address: {"facilitator", "deprecated", "x402scan_synced"}} for every Base address."""
     if cache.exists():
         data = json.loads(cache.read_text())
-        if data["commit"] == commit:
+        if data["commit"] == commit and data.get("format") == FORMAT:
             return data["addresses"]
     names = [f["name"] for f in json.loads(_get(API.format(commit=commit)))
              if f["name"].endswith(".ts") and f["name"] != "index.ts"]
     addresses = {}
     for name in sorted(names):
-        for a in parse_base(_get(RAW.format(commit=commit, name=name))):
-            addresses[a["address"]] = {"facilitator": name[:-3], "deprecated": a["deprecated"]}
+        for a in parse_facilitator(_get(RAW.format(commit=commit, name=name))):
+            addresses[a["address"]] = {"facilitator": name[:-3], "deprecated": a["deprecated"],
+                                       "x402scan_synced": a["x402scan_synced"]}
     cache.parent.mkdir(parents=True, exist_ok=True)
-    cache.write_text(json.dumps({"commit": commit, "addresses": addresses}, indent=1, sort_keys=True))
+    cache.write_text(json.dumps({"commit": commit, "format": FORMAT, "addresses": addresses}, indent=1, sort_keys=True))
     return addresses
