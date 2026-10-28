@@ -36,6 +36,16 @@ python3 -m unittest discover -s tests
 
 Python 3.12 standard library and SQLite. Public onchain data through keyless nodes; no key, no paid API.
 
+## Site
+
+Three static pages (answer, rules, method) built from the run in rahil-design. They are not published, and design review is pending.
+
+```sh
+python3 -m ground_truth.figure     # the exhibit, from the run (needs Proof Desk and uv)
+python3 -m ground_truth.site       # site/ (generated, not in Git)
+python3 scripts/check_site.py      # headline, figure, no wallet address on any page
+```
+
 ## Documents
 
 - Plan: [docs/prd/](docs/prd/) (three parts; DRAFT until Rahil approves)

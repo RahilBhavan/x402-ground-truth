@@ -46,11 +46,11 @@ Part 3 of the PRD; part 1 is [1-product.md](1-product.md).
 | AC-8 | `out/examples/<rule>.csv` holds 5 transaction hashes per rule, and each returns a receipt with `status` `0x1` from the RPC. | `scripts/check_examples.py` | [x] |
 | AC-9 | `out/sensitivity.csv` gives the kept USDC total with each threshold in W3–W5 at 0.5x, 1x and 2x its default. | `out/sensitivity.csv` | [x] |
 | AC-10 | A transaction carrying 3 `AuthorizationUsed` events counts as 3 payments, and a transaction with a `Settled` log from the upto proxy `0x4020A4f3b7b90ccA423B9fabCc0CE57C6C240002` passes W1. | `tests/test_settlements.py` | [ ] |
-| AC-11 | The reconciliation table lists x402scan, Visa/Artemis, Artemis 30-day, Curn and BeInCrypto with window, chains, definition, publication date and a "comparable" column; BeInCrypto's row reads "no: about 94.5% Solana". | `site/index.html` | [ ] |
-| AC-12 | The headline sentence on `site/index.html` contains the W0 and kept USDC totals and the window dates, and they equal the values in `out/waterfall.json`. | `scripts/check_site.py` | [ ] |
-| AC-13 | At 375px width, no page in `site/` scrolls sideways, and every table and figure is present with JavaScript disabled, in a Firefox screenshot. | `scripts/screens.py` output in `out/screens/` | [ ] |
+| AC-11 | The reconciliation table lists x402scan, Visa/Artemis, Artemis 30-day, Curn and BeInCrypto with window, chains, definition, publication date and a "comparable" column; BeInCrypto's row reads "no: about 94.5% Solana". | `site/index.html` | [x] |
+| AC-12 | The headline sentence on `site/index.html` contains the W0 and kept USDC totals and the window dates, and they equal the values in `out/waterfall.json`. | `scripts/check_site.py` | [x] |
+| AC-13 | At 375px width, no page in `site/` scrolls sideways, and every table and figure is present with JavaScript disabled, in a Firefox screenshot. | `scripts/screens.py` output in `out/screens/` | [x] |
 | AC-14 | With a fake RPC that returns HTTP 429 every time, the CLI exits with code 3 after 5 tries; a rerun after the fake recovers fetches no chunk already in `out/cache/`. | `tests/test_rpc_retry.py` | [ ] |
-| AC-15 | No payer or payee address from `out/settlements.sqlite` appears in any file in `site/`. | `scripts/check_site.py` | [ ] |
+| AC-15 | No payer or payee address from `out/settlements.sqlite` appears in any file in `site/`. | `scripts/check_site.py` | [x] |
 | AC-16 | `docs/preregistration.md` holds the falsifiers from section 9, committed before the first commit that adds a 7-day `out/waterfall.json` hash to the README. | `git log --follow` | [ ] |
 | AC-17 | Every number in the README's Results section names the `out/` file it comes from. | README review against `out/` | [x] |
 
@@ -86,6 +86,7 @@ Part 3 of the PRD; part 1 is [1-product.md](1-product.md).
 
 | Date | Request | Verdict | Cost |
 | --- | --- | --- | --- |
+| 2026-10-28 | Slice 5: the primary figure is a ranked-parts exhibit (`hbars`), not a waterfall bar chain: rahil-design 4.0 has no waterfall form, and the run's finding is one payer-payee pair holding 85% of W1's dollars. Every waterfall step stays in the table under it. | IN (design system) | 0 criteria |
 | 2026-10-27 | First draft from the Proof Desk idea #4 teardown | DRAFT | — |
 | 2026-10-27 | Slice 2 finding: x402scan's 7-day figure is a materialized view over `NOW() - 7 days` at an unpublished refresh time, but its bucketed series uses exact 3.5-hour buckets. The window becomes the 47 complete buckets 2026-10-20 18:00 to 2026-10-27 14:30 UTC, and AC-4 compares per bucket. | IN (method fix) | 0 criteria; no date moved |
 | 2026-10-28 | Slice 6: the Visa/Artemis PDF is read (D1, D3). Its seller rule counts sellers and does not remove volume; its wash filters are proprietary; its 11.05% kept share covers x402 since launch, not only Base. W4's wording now says "or", as the pre-registration does; no lifetime row. | IN (source read) | 0 criteria |
