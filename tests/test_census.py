@@ -52,7 +52,7 @@ class Census(unittest.TestCase):
     def setUp(self):
         self.fake = FakeRpc(chain)
         self.addCleanup(self.fake.close)
-        self.tmp = Path(tempfile.mkdtemp(dir=Path.home() / "scratch"))
+        self.tmp = Path(self.enterContext(tempfile.TemporaryDirectory()))
         capture(self.tmp / "buckets.json")
 
     def run_census(self):
@@ -106,7 +106,7 @@ class NonceGaps(unittest.TestCase):
 
         fake = FakeRpc(answer)
         self.addCleanup(fake.close)
-        rpc = Rpc(fake.url, Path(tempfile.mkdtemp(dir=Path.home() / "scratch")), pause=0)
+        rpc = Rpc(fake.url, Path(self.enterContext(tempfile.TemporaryDirectory())), pause=0)
         self.assertEqual(census.gap_blocks(rpc, FAC, 99, 200, 0, 4, [105, 130, 177]), [130])
         self.assertEqual(census.gap_blocks(rpc, FAC, 99, 200, 0, 4, [105, 130, 130, 177]), [])
         self.assertLess(len(calls), 20)
@@ -114,7 +114,7 @@ class NonceGaps(unittest.TestCase):
 
 class Report(unittest.TestCase):
     def test_writes_the_csv_and_waterfall_without_the_hour_check(self):  # S3-P1: AC-2 from an empty out/
-        out = Path(tempfile.mkdtemp(dir=Path.home() / "scratch"))
+        out = Path(self.enterContext(tempfile.TemporaryDirectory()))
         db = sqlite3.connect(":memory:")
         db.executescript(census.SCHEMA)
         db.execute("insert into buckets values ('b', 1, 2, 2, 200, 1, '{}')")
