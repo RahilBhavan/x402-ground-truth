@@ -48,6 +48,6 @@ python3 scripts/check_site.py      # headline, figure, no wallet address on any 
 
 ## Documents
 
-- Plan: [docs/prd/](docs/prd/) (three parts; DRAFT until Rahil approves)
+- Plan: [docs/prd/](docs/prd/) (three parts; approved by Rahil on 2026-11-01)
 - Slices: [docs/slices/](docs/slices/)
 - Sources: [research/sources.md](research/sources.md), [research/sources-observed.md](research/sources-observed.md)

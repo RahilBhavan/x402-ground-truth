@@ -36,6 +36,7 @@ Part 3 of the PRD; part 1 is [1-product.md](1-product.md).
 
 | # | Criterion | Where to check | Pass |
 | --- | --- | --- | --- |
+| 2026-11-01 | Rahil approved the PRD ("R1 I approve"). Releases the Receipts No. 1 card (x402: 4 payments are 85% of the $386,106) from its PRD gate. | APPROVED | 0 criteria |
 | AC-1 | `python -m ground_truth run --buckets out/reconcile/x402scan-buckets-<capture time>.json` exits 0 and writes `out/settlements.sqlite` and `out/waterfall.json` for the 47 complete buckets of that capture. | Terminal, `out/` | [ ] |
 | AC-2 | Two runs from an empty `out/` produce `out/waterfall.json` files with equal SHA-256 hashes. | `sha256sum` | [ ] |
 | AC-3 | `out/waterfall.json` records the first and last block numbers, the x402scan commit SHA of the facilitator list and a version string per rule. | `out/waterfall.json` | [ ] |

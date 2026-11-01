@@ -3,8 +3,8 @@
 **One sentence.** A payments analyst at Coinbase or Circle can see how much of x402's reported Base volume survives each named exclusion rule, so that they can quote an adoption number with its method attached.
 **Owner.** Rahil Bhavan
 **Date.** 2026-10-27
-**Status.** DRAFT
-**Path.** `docs/prd/` (three parts) in `~/projects/x402-ground-truth` (local; no remote yet)
+**Status.** APPROVED by Rahil, 2026-11-01 ("R1 I approve")
+**Path.** `docs/prd/` (three parts) in `~/projects/x402-ground-truth` (github.com/RahilBhavan/x402-ground-truth, public)
 
 ---
 
